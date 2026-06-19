@@ -22,14 +22,13 @@ class AuthService {
         'email': email,
         'uid': userCredential.user!.uid,
         'isOnline': false,
-        'lastSeen': DateTime.now(),
-        'createdAt': DateTime.now(),
+        'lastSeen': FieldValue.serverTimestamp(),
+        'createdAt': FieldValue.serverTimestamp(),
       });
 
       return userCredential.user;
     } on FirebaseAuthException catch (e) {
-      print('Signup error: ${e.message}');
-      return null;
+      throw e.message ?? "An unknown authentication error occurred.";
     }
   }
 
@@ -43,13 +42,12 @@ class AuthService {
 
       // Update user status to online
       await _firestore.collection('users').doc(userCredential.user!.uid).update(
-        {'isOnline': true, 'lastSeen': DateTime.now()},
+        {'isOnline': true, 'lastSeen': FieldValue.serverTimestamp()},
       );
 
       return userCredential.user;
     } on FirebaseAuthException catch (e) {
-      print('Login error: ${e.message}');
-      return null;
+      throw e.message ?? "An unknown authentication error occurred.";
     }
   }
 
@@ -60,12 +58,12 @@ class AuthService {
       if (user != null) {
         await _firestore.collection('users').doc(user.uid).update({
           'isOnline': false,
-          'lastSeen': DateTime.now(),
+          'lastSeen': FieldValue.serverTimestamp(),
         });
       }
       await _auth.signOut();
-    } catch (e) {
-      print('Logout error: $e');
+    } on FirebaseAuthException catch (e) {
+      throw e.message ?? "An unknown authentication error occurred.";
     }
   }
 }
