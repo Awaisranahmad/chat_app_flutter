@@ -11,12 +11,10 @@ class AuthService {
   }
 
   // Signup with email/password
-  Future<User?> signUp(String email, String password, String name) async {
+  Future<User?> singup(String email, String password, String name) async {
     try {
       UserCredential userCredential = await _auth
           .createUserWithEmailAndPassword(email: email, password: password);
-
-      // Save user data to Firestore
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'name': name,
         'email': email,
@@ -25,7 +23,6 @@ class AuthService {
         'lastSeen': FieldValue.serverTimestamp(),
         'createdAt': FieldValue.serverTimestamp(),
       });
-
       return userCredential.user;
     } on FirebaseAuthException catch (e) {
       throw e.message ?? "An unknown authentication error occurred.";
