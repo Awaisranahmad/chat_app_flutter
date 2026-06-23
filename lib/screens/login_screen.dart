@@ -13,79 +13,69 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final AuthService _auth = AuthService();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _isLoading = false;
-  String _errorMessage = '';
+  String _erroMessage = '';
 
   Future<void> _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      setState(() => _errorMessage = 'Please fill all fields');
+      setState(() => _erroMessage = 'Please fill all fields');
       return;
     }
-
     setState(() {
       _isLoading = true;
-      _errorMessage = '';
+      _erroMessage = '';
     });
-
     User? user = await _auth.login(
       _emailController.text.trim(),
       _passwordController.text.trim(),
     );
-
     setState(() => _isLoading = false);
-
     if (user != null && mounted) {
       Navigator.pushReplacementNamed(context, '/home');
     } else {
-      setState(() => _errorMessage = 'Invalid email or password');
+      setState(() => _erroMessage = 'invalid email or password');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login'), centerTitle: true),
+      appBar: AppBar(title: const Text('Login Page'), centerTitle: true),
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsetsGeometry.all(24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              'Chat App 💬',
+              'Chat APP For Practice',
               style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 40),
-
             TextField(
               controller: _emailController,
               decoration: InputDecoration(
-                labelText: 'Email',
+                labelText: 'email',
                 prefixIcon: const Icon(Icons.email),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-
+            SizedBox(height: 16),
             TextField(
               controller: _passwordController,
               obscureText: true,
               decoration: InputDecoration(
-                labelText: 'Password',
+                labelText: 'password',
                 prefixIcon: const Icon(Icons.lock),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-
-            if (_errorMessage.isNotEmpty)
-              Text(_errorMessage, style: const TextStyle(color: Colors.red)),
-            const SizedBox(height: 20),
-
+            if (_erroMessage.isNotEmpty)
+              Text(_erroMessage, style: const TextStyle(color: Colors.red)),
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -93,11 +83,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: _isLoading ? null : _login,
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Login'),
+                    : const Text('login'),
               ),
             ),
-            const SizedBox(height: 16),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
