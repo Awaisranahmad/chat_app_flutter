@@ -86,3 +86,10 @@ ios/Podfile.lock
 # Intellij / Android Studio specific
 *.iml
 .idea/
+build/
+.dart_tool/
+*.iml
+.idea/
+*.log
+node_modules/
+.DS_Store
