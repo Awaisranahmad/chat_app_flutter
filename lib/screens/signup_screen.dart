@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../home_screen.dart'; // ← HomeScreen import karo
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -38,35 +39,51 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    // 2. Loading start karo
+    // 2. Loading start
     setState(() {
       _isLoading = true;
       _errorMessage = '';
     });
 
-    // 3. 🔥 TRY-CATCH ADD KARO 🔥
     try {
+      print('📤 Attempting signup...');
+
       User? user = await _auth.signUp(
         _emailController.text.trim(),
         _passwordController.text.trim(),
         _nameController.text.trim(),
       );
 
-      // Loading band karo (agar successful ya fail)
-      setState(() => _isLoading = false);
+      print('📥 Signup result: $user');
 
-      if (user != null && mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+      // Loading band karo
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+
+      if (user != null) {
+        print('✅ User created successfully! Navigating to home...');
+        if (mounted) {
+          // 🔥 DIRECT NAVIGATION WITH MATERIALPAGEROUTE
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
+        }
       } else {
-        setState(() => _errorMessage = 'Signup failed. Try again.');
+        print('❌ User is null');
+        if (mounted) {
+          setState(() => _errorMessage = 'Signup failed. Try again.');
+        }
       }
     } catch (e) {
-      // 4. 🔥 KOI BHI UNEXPECTED ERROR CATCH KARO 🔥
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'Error: $e';
-      });
-      print('Unexpected signup error: $e');
+      print('❌ Exception: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Error: $e';
+        });
+      }
     }
   }
 
