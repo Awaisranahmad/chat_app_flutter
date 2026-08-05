@@ -19,7 +19,7 @@ class _SignupScreenState extends State<SignupScreen> {
   String _errorMessage = '';
 
   Future<void> _signup() async {
-    // Validation
+    // 1. Validation
     if (_nameController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty ||
@@ -38,23 +38,35 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
+    // 2. Loading start karo
     setState(() {
       _isLoading = true;
       _errorMessage = '';
     });
 
-    User? user = await _auth.signUp(
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
-      _nameController.text.trim(),
-    );
+    // 3. 🔥 TRY-CATCH ADD KARO 🔥
+    try {
+      User? user = await _auth.signUp(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+        _nameController.text.trim(),
+      );
 
-    setState(() => _isLoading = false);
+      // Loading band karo (agar successful ya fail)
+      setState(() => _isLoading = false);
 
-    if (user != null && mounted) {
-      Navigator.pushReplacementNamed(context, '/home');
-    } else {
-      setState(() => _errorMessage = 'Signup failed. Try again.');
+      if (user != null && mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        setState(() => _errorMessage = 'Signup failed. Try again.');
+      }
+    } catch (e) {
+      // 4. 🔥 KOI BHI UNEXPECTED ERROR CATCH KARO 🔥
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Error: $e';
+      });
+      print('Unexpected signup error: $e');
     }
   }
 
