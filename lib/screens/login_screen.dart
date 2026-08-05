@@ -1,3 +1,4 @@
+import 'package:chat_app/home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
@@ -32,7 +33,10 @@ class _LoginScreenState extends State<LoginScreen> {
     );
     setState(() => _isLoading = false);
     if (user != null && mounted) {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
     } else {
       setState(() => _erroMessage = 'invalid email or password');
     }
