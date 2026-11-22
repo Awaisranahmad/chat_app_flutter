@@ -21,23 +21,41 @@ class _ChatScreenState extends State<ChatScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
+  }
+
   // Send message function
   Future<void> _sendMessage() async {
     if (_messageController.text.trim().isEmpty) return;
 
+    final User? currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in again to send messages')),
+      );
+      return;
+    }
+
     final String text = _messageController.text.trim();
-    final String senderId = _auth.currentUser!.uid;
+    final String senderId = currentUser.uid;
 
     try {
       await _firestore.collection('messages').add({
         'senderId': senderId,
         'receiverId': widget.receiverId,
         'text': text,
-        'timestamp': DateTime.now(),
+        // Server timestamp, so message order is the same on every device
+        // even when the sender's clock is wrong.
+        'timestamp': FieldValue.serverTimestamp(),
         'isRead': false,
       });
       _messageController.clear();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error sending message: $e')),
       );
@@ -66,7 +84,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
   // Messages list with StreamBuilder
   Widget _buildMessagesList() {
-    final String senderId = _auth.currentUser!.uid;
+    final User? currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      return const Center(
+        child: Text('Please log in again to view messages'),
+      );
+    }
+    final String senderId = currentUser.uid;
 
     return StreamBuilder<QuerySnapshot>(
       stream: _firestore
@@ -98,7 +122,7 @@ class _ChatScreenState extends State<ChatScreen> {
             final isMe = data['senderId'] == senderId;
 
             return _buildMessageBubble(
-              text: data['text'] ?? '',
+              text: (data['text'] as String?) ?? '',
               isMe: isMe,
               timestamp: data['timestamp']?.toDate() ?? DateTime.now(),
             );
