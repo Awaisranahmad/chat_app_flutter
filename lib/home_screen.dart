@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import './services/auth_service.dart';
+import 'screens/chat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,9 +13,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final AuthService _auth = AuthService();
+
   @override
   Widget build(BuildContext context) {
-    User? currentUser = _auth.getCurrentUser();
+    final User? currentUser = _auth.getCurrentUser();
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -43,7 +45,6 @@ class _HomeScreenState extends State<HomeScreen> {
             .collection('users')
             .where('uid', isNotEqualTo: currentUser?.uid ?? '')
             .snapshots(),
-        // initialData: initialData,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -52,20 +53,24 @@ class _HomeScreenState extends State<HomeScreen> {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('No users found'));
+            return const Center(child: Text('No users found'));
           }
           final users = snapshot.data!.docs;
           return ListView.builder(
             itemCount: users.length,
             itemBuilder: (context, index) {
               final userData = users[index].data() as Map<String, dynamic>;
-              final isOnline = userData['isOnline'] ?? false;
-              final userName = userData['name'] ?? 'Unknown User';
+              final bool isOnline = (userData['isOnline'] as bool?) ?? false;
+              final String userName =
+                  (userData['name'] as String?) ?? 'Unknown User';
+              // The document id is the user's uid (see AuthService.signUp).
+              final String receiverId =
+                  (userData['uid'] as String?) ?? users[index].id;
               return ListTile(
                 leading: CircleAvatar(
                   backgroundColor: isOnline ? Colors.green : Colors.grey,
                   child: Text(
-                    userName[0].toUpperCase(),
+                    userName.isNotEmpty ? userName[0].toUpperCase() : '?',
                     style: const TextStyle(color: Colors.white),
                   ),
                 ),
@@ -77,7 +82,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 onTap: () {
-                  print('Tapped on: $userName');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChatScreen(
+                        receiverId: receiverId,
+                        receiverName: userName,
+                      ),
+                    ),
+                  );
                 },
               );
             },
