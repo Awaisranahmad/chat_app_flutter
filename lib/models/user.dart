@@ -17,16 +17,25 @@ class UserModel {
     required this.createdAt,
   });
 
+  /// Firestore returns [Timestamp] for date fields, while [toMap] stores
+  /// [DateTime] — accept both so a map round-trips without a cast error.
+  static DateTime _toDateTime(dynamic value) {
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    return DateTime.now();
+  }
+
   factory UserModel.fromMap(Map<String, dynamic> data, String uid) {
     return UserModel(
       uid: uid,
-      name: data['name'] ?? '',
-      email: data['email'] ?? '',
-      isOnline: data['isOnline'] ?? false,
-      lastSeen: (data['lastSeen'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      name: (data['name'] as String?) ?? '',
+      email: (data['email'] as String?) ?? '',
+      isOnline: (data['isOnline'] as bool?) ?? false,
+      lastSeen: _toDateTime(data['lastSeen']),
+      createdAt: _toDateTime(data['createdAt']),
     );
   }
+
   Map<String, dynamic> toMap() {
     return {
       'name': name,
